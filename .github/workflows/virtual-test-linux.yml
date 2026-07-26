@@ -1,0 +1,24 @@
+name: Virtual test (linux)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'linux/**'
+      - '.github/workflows/virtual-test-linux.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'linux/**'
+      - '.github/workflows/virtual-test-linux.yml'
+
+jobs:
+  virtual-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: linux
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run virtual test
+        run: bash tests/virtual-test.sh

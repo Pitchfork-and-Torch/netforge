@@ -1,0 +1,40 @@
+name: PSScriptAnalyzer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'windows/**'
+      - '.github/workflows/lint-windows.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'windows/**'
+      - '.github/workflows/lint-windows.yml'
+
+jobs:
+  lint:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: windows
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+
+      - name: Analyze scripts
+        shell: pwsh
+        run: |
+          $settings = Join-Path (Get-Location) 'PSScriptAnalyzerSettings.psd1'
+          $results = @()
+          foreach ($target in @('src', 'install.ps1')) {
+            $results += Invoke-ScriptAnalyzer -Path $target -Recurse -Severity Error -Settings $settings
+          }
+          if ($results) {
+            $results | Format-Table -AutoSize
+            exit 1
+          }
+          Write-Host 'PSScriptAnalyzer: no warnings or errors.'

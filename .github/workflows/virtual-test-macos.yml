@@ -19,6 +19,6 @@ jobs:
       run:
         working-directory: macos
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run virtual test
         run: bash tests/virtual-test.sh

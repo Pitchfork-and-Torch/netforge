@@ -1,0 +1,26 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs / local runtime
+*.log
+logs/
+*.pid
+
+# Local overrides (never commit secrets)
+config/defaults.local.*
+**/config/defaults.local.*
+.env
+.env.*
+!.env.example
+
+# Python / node if ever added
+__pycache__/
+node_modules/

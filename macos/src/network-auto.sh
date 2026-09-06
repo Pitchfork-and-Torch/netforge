@@ -64,8 +64,12 @@ apply_sysctl() {
   netforge_log "sysctl applied"
 }
 apply_awdl() {
-  # When wired Ethernet is present, optionally disable AWDL (AirDrop peer discovery) to reduce radio chatter.
+  # Only when DISABLE_AWDL=true and wired Ethernet is up. Default config is false.
   command -v ifconfig >/dev/null 2>&1 || return 0
+  if [[ "${DISABLE_AWDL:-false}" != true ]]; then
+    [[ "$DRY_RUN" == true ]] && plan "keep AWDL (DISABLE_AWDL=false)"
+    return 0
+  fi
   local has_eth=false svc
   if command -v networksetup >/dev/null 2>&1; then
     while IFS= read -r svc; do

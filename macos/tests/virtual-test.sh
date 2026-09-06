@@ -60,6 +60,7 @@ fi
 
 grep -q 'order_svcs' "$ROOT/src/network-auto.sh" && ok "bash 3.2 service order fix" || bad "bash 3.2 service order fix"
 grep -q 'apply_awdl' "$ROOT/src/network-auto.sh" && ok "apply_awdl wired" || bad "apply_awdl wired"
+grep -q '${DISABLE_AWDL' "$ROOT/src/network-auto.sh" && ok "DISABLE_AWDL honored" || bad "DISABLE_AWDL ignored"
 grep -q '\$TRIGGER" != "daemon"' "$ROOT/src/network-auto.sh" && ok "daemon skips systemsetup" || bad "daemon skips systemsetup"
 
 echo ""

@@ -1,6 +1,10 @@
 # Changelog
 
-## 2.0.0 — monorepo
+## Unreleased
+
+- Docs polish: ASCII punctuation, platform `VERSION` files without BOM, landing links point at this monorepo.
+
+## 2.0.0 - monorepo
 
 - Merged `netforge-windows`, `netforge-linux`, and `netforge-macos` into one repository (`Pitchfork-and-Torch/netforge`).
 - Platform code lives under `windows/`, `linux/`, and `macos/`.

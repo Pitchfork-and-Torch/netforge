@@ -1,6 +1,6 @@
 # NetForge v2.0 design (suite)
 
-## Gap analysis (v1.0.x → goals)
+## Gap analysis (v1.0.x -> goals)
 
 | Goal | Windows v1 | Linux/macOS v1 | v2 approach |
 |------|------------|----------------|-------------|
@@ -11,7 +11,7 @@
 | Packaging | install.ps1 only | install.sh only | winget / brew / packaging notes |
 | Config profiles | Single defaults | Single defaults | example profiles: home, travel, corporate, privacy-max |
 | Uninstall revert | Tasks only | Partial | Optional `--revert` best-effort restore |
-| Landing | GitHub only | GitHub only | github.com/Pitchfork-and-Torch/netforge-landing |
+| Landing | GitHub only | GitHub only | github.com/Pitchfork-and-Torch/netforge |
 
 ## Shared config concepts (names)
 
@@ -32,4 +32,4 @@ No telemetry, no accounts, no cloud required for apply, no router control.
 
 ## Version
 
-**2.0.0** across all three repositories.
+**2.0.0** across `windows/`, `linux/`, and `macos/` in this monorepo.

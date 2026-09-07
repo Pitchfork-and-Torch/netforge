@@ -6,7 +6,7 @@
 - Status `--json` / `--html` / last-run
 - `RESPECT_VPN`, `--dry-run`
 - Config profiles
-- Landing: https://github.com/Pitchfork-and-Torch/netforge-landing
+- Landing: https://github.com/Pitchfork-and-Torch/netforge
 
 ## 1.0.2
 

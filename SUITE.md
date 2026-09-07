@@ -12,7 +12,7 @@ Monorepo: [Pitchfork-and-Torch/netforge](https://github.com/Pitchfork-and-Torch/
 
 ## Shared design
 
-- **Discover adapters/services at runtime** — no hard-coded NIC names  
+- **Discover adapters/services at runtime** - no hard-coded NIC names  
 - **Prefer Ethernet over Wi-Fi** when both are up  
 - **DNS** toward resilient public resolvers (DoH on Windows; DoT/resolved on Linux; `networksetup` on macOS)  
 - **Optional hardening** (file sharing / SSH / mDNS) behind config flags  
@@ -33,11 +33,11 @@ Monorepo: [Pitchfork-and-Torch/netforge](https://github.com/Pitchfork-and-Torch/
 
 | Tool | Role |
 |------|------|
-| [trench-coat](https://github.com/Pitchfork-and-Torch/trench-coat) | Multi-hop privacy cloak (Tor / proxy chains) — **privacy routing**, not LAN tuning |
+| [trench-coat](https://github.com/Pitchfork-and-Torch/trench-coat) | Multi-hop privacy cloak (Tor / proxy chains) - **privacy routing**, not LAN tuning |
 | [ghost-continuum](https://github.com/Pitchfork-and-Torch/ghost-continuum) | Defense / deception / forensics plane (optional Trench Coat integration) |
 | [Fl1pp3r69](https://github.com/Pitchfork-and-Torch/Fl1pp3r69) | Authorized RF/NFC field ops (separate domain) |
 
-NetForge hardens **your host’s network stack**. Trench Coat and Ghost Continuum address **egress privacy** and **defense**. They compose; they do not replace each other.
+NetForge hardens **your host's network stack**. Trench Coat and Ghost Continuum address **egress privacy** and **defense**. They compose; they do not replace each other.
 
 ## Non-goals
 

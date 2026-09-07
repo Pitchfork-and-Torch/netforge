@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Bootstrap installer — clone NetForge monorepo and run linux platform installer
+# Bootstrap installer - clone NetForge monorepo and run linux platform installer
 set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/Pitchfork-and-Torch/netforge.git}"

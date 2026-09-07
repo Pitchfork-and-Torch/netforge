@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Virtual tests — no root, no network changes. Run: bash tests/virtual-test.sh
+# Virtual tests - no root, no network changes. Run: bash tests/virtual-test.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"

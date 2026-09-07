@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Bootstrap installer for NetForge Windows — clones monorepo and registers scheduled tasks.
+    Bootstrap installer for NetForge Windows - clones monorepo and registers scheduled tasks.
 .DESCRIPTION
     Safe to inspect before running. Does not embed credentials or network details.
     Usage:

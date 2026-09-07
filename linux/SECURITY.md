@@ -25,11 +25,11 @@ Clone and read `src/network-auto.sh` before running. Install only from [github.c
 | Captive portal (hotel/airport Wi-Fi) | Encrypted DNS (DoT) can block the portal page. Temporarily set `DNS_OVER_TLS=false` or pause automation, connect, then re-enable. |
 | Corporate / always-on VPN | VPN metrics may override NetForge routing preference. Disable NetForge or raise Wi-Fi/Ethernet metrics in config if breaks. |
 | Offline install | Bootstrap needs git clone once; later runs only touch local settings. |
-| Multi-user machines | Install as root; logs under root or configured path â€” do not commit logs. |
+| Multi-user machines | Install as root; logs under root or configured path - do not commit logs. |
 
 ## Uninstall
 
-`sudo ./src/uninstall-network-auto.sh` â€” removes automation only.
+`sudo ./src/uninstall-network-auto.sh` - removes automation only.
 
 ## Captive portal recovery
 

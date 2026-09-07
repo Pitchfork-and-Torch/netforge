@@ -21,6 +21,6 @@ curl -fsSL https://raw.githubusercontent.com/Pitchfork-and-Torch/netforge/main/m
 
 ## License
 
-MIT â€” see [../LICENSE](../LICENSE).
+MIT - see [../LICENSE](../LICENSE).
 
 <!-- CI: LICENSE gate covered by virtual-test.sh -->

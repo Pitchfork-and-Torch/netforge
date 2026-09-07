@@ -30,4 +30,4 @@ irm https://raw.githubusercontent.com/Pitchfork-and-Torch/netforge/main/windows/
 
 ## License
 
-MIT — see [../LICENSE](../LICENSE).
+MIT - see [../LICENSE](../LICENSE).

@@ -23,7 +23,7 @@ Logs are written only to `%LOCALAPPDATA%\NetForge\network-auto.log` on your mach
 
 1. Download only from [github.com/Pitchfork-and-Torch/netforge](https://github.com/Pitchfork-and-Torch/netforge).
 2. Prefer `git clone` and read the scripts before running.
-3. If using `irm ... | iex`, review [install.ps1](install.ps1) first â€” it clones this repo and runs the installer.
+3. If using `irm ... | iex`, review [install.ps1](install.ps1) first - it clones this repo and runs the installer.
 4. Do not run forks or third-party mirrors unless you audit them.
 
 ## Default hardening (review before install)
@@ -42,7 +42,7 @@ Set these to `$false` in `config/defaults.psd1` if you need those features.
 |-----------|----------|
 | Captive portal (hotel/airport Wi-Fi) | Forced DoH can block the portal. Temporarily disable DoH or NetForge tasks, open the portal page, then re-enable. |
 | Corporate VPN | Adapter metrics may fight split-tunnel VPN. Set metrics manually or skip automation while on VPN. |
-| Offline | After install, scheduled runs only need local APIs â€” no cloud. |
+| Offline | After install, scheduled runs only need local APIs - no cloud. |
 | Multi-homed / Hyper-V switches | Virtual adapters are skipped when inactive; verify with `Get-NetForgeStatus.ps1`. |
 
 Prefer `.\src\Get-NetForgeStatus.ps1` (read-only) before changing anything.

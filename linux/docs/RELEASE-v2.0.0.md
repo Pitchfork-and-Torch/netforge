@@ -15,13 +15,13 @@ Compress-Archive -Path * -DestinationPath netforge-windows-2.0.0.zip -Force
 Get-FileHash .\netforge-windows-2.0.0.zip -Algorithm SHA256
 ```
 
-Attach zip + paste SHA256 into GitHub Release notes. Signing: optional Authenticode / cosign — document if used; not required for MIT scripts.
+Attach zip + paste SHA256 into GitHub Release notes. Signing: optional Authenticode / cosign - document if used; not required for MIT scripts.
 
 ## Checklist
 
 - [ ] VERSION = 2.0.0 on windows / macos / linux  
 - [ ] CHANGELOG entries present  
-- [ ] Landing deployed at github.com/Pitchfork-and-Torch/netforge-landing  
+- [ ] Landing deployed at github.com/Pitchfork-and-Torch/netforge  
 - [ ] GSC sitemap submitted  
 - [ ] winget/homebrew stubs updated with real SHA after zip publish  
 
@@ -38,8 +38,8 @@ Attach zip + paste SHA256 into GitHub Release notes. Signing: optional Authentic
 
 ### Edge cases
 
-- No adapters up → status health degraded; apply retries/waits on Windows  
-- Portal with HTTPS-only redirects → use neverssl / captive.apple.com HTTP  
-- Corporate VPN → `RespectVpn` / `RESPECT_VPN` true  
-- Free org policies disabling deploy keys → N/A for NetForge  
-- PowerShell 5.1 vs 7 — scripts target 5.1+  
+- No adapters up -> status health degraded; apply retries/waits on Windows  
+- Portal with HTTPS-only redirects -> use neverssl / captive.apple.com HTTP  
+- Corporate VPN -> `RespectVpn` / `RESPECT_VPN` true  
+- Free org policies disabling deploy keys -> N/A for NetForge  
+- PowerShell 5.1 vs 7 - scripts target 5.1+  

@@ -4,9 +4,9 @@ Thanks for improving NetForge.
 
 ## Layout
 
-- `windows/` — PowerShell (Windows 10/11)
-- `linux/` — bash + NetworkManager
-- `macos/` — bash + networksetup
+- `windows/` - PowerShell (Windows 10/11)
+- `linux/` - bash + NetworkManager
+- `macos/` - bash + networksetup
 
 Keep changes platform-scoped when possible. Shared design notes live in `SUITE.md`.
 

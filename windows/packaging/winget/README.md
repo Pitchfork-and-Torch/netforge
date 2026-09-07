@@ -6,4 +6,4 @@
 4. Submit to [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) following their PR template.
 5. Until published, install via git clone or `install.ps1`.
 
-NetForge remains **local-first**; winget only distributes files—no cloud account is required at runtime.
+NetForge remains **local-first**; winget only distributes files - no cloud account is required at runtime.

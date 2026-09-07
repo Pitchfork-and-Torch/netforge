@@ -2,7 +2,7 @@
 
 **Cross-platform automatic network performance tuning and security hardening.**
 
-Windows 10/11 · Linux (NetworkManager) · macOS 12+
+Windows 10/11 / Linux (NetworkManager) / macOS 12+
 
 [![Live](https://img.shields.io/badge/live-netforge.jonbailey.xyz-111111)](https://netforge.jonbailey.xyz)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -10,7 +10,9 @@ Windows 10/11 · Linux (NetworkManager) · macOS 12+
 
 Local-first. Zero telemetry. Prefer Ethernet, resilient DNS, TCP tuning, optional hardening.
 
-**Suite landing:** [netforge.jonbailey.xyz](https://netforge.jonbailey.xyz)
+Apply path and source of truth: this monorepo (`VERSION` **2.0.0**). The former split repos (`netforge-windows`, `netforge-linux`, `netforge-macos`) are archived stubs.
+
+**Suite landing:** [netforge.jonbailey.xyz](https://netforge.jonbailey.xyz) (marketing page; install from this repo).
 
 ## Repository layout
 
@@ -61,7 +63,7 @@ sudo ./src/install-network-auto.sh
 
 ## Shared design
 
-- Discover adapters/services at runtime  -  no hard-coded NIC names
+- Discover adapters/services at runtime - no hard-coded NIC names
 - Prefer Ethernet over Wi-Fi when both are up
 - DNS toward resilient public resolvers (DoH on Windows; DoT/resolved on Linux; networksetup on macOS)
 - Optional hardening behind config flags
@@ -85,7 +87,7 @@ Each platform ships `home`, `travel`, `corporate`, and `privacy-max` configs. St
 
 ## License
 
-MIT  -  see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).
 
 ## Support
 

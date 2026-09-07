@@ -10,7 +10,7 @@
 - Uninstall `-RevertSettings` best-effort restore
 - Config profiles: home, travel, corporate, privacy-max
 - Packaging: winget example under `packaging/winget/`
-- Landing: https://netforge.jonbailey.xyz
+- Landing: https://github.com/Pitchfork-and-Torch/netforge
 
 ### Migration
 1. Pull v2.0.0

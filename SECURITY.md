@@ -11,7 +11,7 @@ Please open a private security advisory or GitHub Issue on [Pitchfork-and-Torch/
 ## Hardening notes
 
 - Review config profiles under each platform `config/` before enabling privacy-max or corporate profiles  
-- Captive-portal helpers temporarily relax DNS privacy — restore after login  
+- Captive-portal helpers temporarily relax DNS privacy - restore after login  
 - Uninstall scripts are provided per platform  
 
 ## Supported versions

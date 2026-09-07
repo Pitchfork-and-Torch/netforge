@@ -1,8 +1,8 @@
-# Homebrew formula stub — not yet in homebrew-core.
+# Homebrew formula stub - not yet in homebrew-core.
 # Usage (after tap): brew install pitchfork-and-torch/tap/netforge
 class Netforge < Formula
   desc "Local network performance tuning and optional hardening for macOS"
-  homepage "https://github.com/Pitchfork-and-Torch/netforge-landing"
+  homepage "https://github.com/Pitchfork-and-Torch/netforge"
   url "https://github.com/Pitchfork-and-Torch/netforge/archive/refs/tags/v2.0.0.tar.gz"
   sha256 "REPLACE_WITH_SHA256"
   license "MIT"

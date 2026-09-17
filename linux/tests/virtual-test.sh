@@ -30,6 +30,19 @@ netforge_load_config "$ROOT/config/defaults.conf"
 [[ "$DNS_SERVERS" == *"1.1.1.1"* ]] && ok "DNS_SERVERS" || bad "DNS_SERVERS"
 [[ "$ETHERNET_METRIC" -lt "$WIFI_METRIC_ALONE" ]] && ok "metrics order" || bad "metrics order"
 
+# --- log rotation must not abort an errexit caller (regression) ---
+tmp_log_dir="$(mktemp -d)"
+printf 'a\nb\nc\n' >"$tmp_log_dir/short.log"
+# Separate process: bash ignores set -e inside an if/&&/|| context, so a subshell here would not reproduce the caller.
+rotate_out="$(bash -c 'set -euo pipefail; source "$1"; LOG_FILE="$2"; MAX_LOG_LINES=2000; netforge_rotate_log; echo reached' \
+  _ "$ROOT/src/lib/common.sh" "$tmp_log_dir/short.log" 2>/dev/null || true)"
+[[ "$rotate_out" == "reached" ]] && ok "rotate_log short log returns 0" || bad "rotate_log short log aborts errexit caller"
+seq 1 10 >"$tmp_log_dir/long.log"
+(LOG_FILE="$tmp_log_dir/long.log"; MAX_LOG_LINES=4; netforge_rotate_log)
+[[ "$(wc -l <"$tmp_log_dir/long.log" | tr -d ' ')" == "4" && "$(tail -n 1 "$tmp_log_dir/long.log")" == "10" ]] \
+  && ok "rotate_log trims long log" || bad "rotate_log trims long log"
+rm -rf "$tmp_log_dir"
+
 # --- congestion control helper (inline copy for unit test) ---
 pick_cc() {
   if [[ -r /proc/sys/net/ipv4/tcp_available_congestion_control ]] \

@@ -26,6 +26,19 @@ netforge_load_config "$ROOT/config/defaults.conf"
 [[ "$APP_NAME" == "NetForge" ]] && ok "APP_NAME" || bad "APP_NAME"
 [[ "$DNS_SERVERS" == *"1.1.1.1"* ]] && ok "DNS_SERVERS" || bad "DNS_SERVERS"
 
+# log rotation must not abort an errexit caller (regression)
+tmp_log_dir="$(mktemp -d)"
+printf 'a\nb\nc\n' >"$tmp_log_dir/short.log"
+# Separate process: bash ignores set -e inside an if/&&/|| context, so a subshell here would not reproduce the caller.
+rotate_out="$(bash -c 'set -euo pipefail; source "$1"; LOG_FILE="$2"; MAX_LOG_LINES=2000; netforge_rotate_log; echo reached' \
+  _ "$ROOT/src/lib/common.sh" "$tmp_log_dir/short.log" 2>/dev/null || true)"
+[[ "$rotate_out" == "reached" ]] && ok "rotate_log short log returns 0" || bad "rotate_log short log aborts errexit caller"
+seq 1 10 >"$tmp_log_dir/long.log"
+(LOG_FILE="$tmp_log_dir/long.log"; MAX_LOG_LINES=4; netforge_rotate_log)
+[[ "$(wc -l <"$tmp_log_dir/long.log" | tr -d ' ')" == "4" && "$(tail -n 1 "$tmp_log_dir/long.log")" == "10" ]] \
+  && ok "rotate_log trims long log" || bad "rotate_log trims long log"
+rm -rf "$tmp_log_dir"
+
 # service_type (copy from network-auto.sh)
 service_type() {
   local svc="$1"

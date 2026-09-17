@@ -16,7 +16,11 @@ netforge_log() { mkdir -p "$(dirname "$LOG_FILE")"; printf '[%s] %s\n' "$(date '
 netforge_rotate_log() {
   [[ -f "$LOG_FILE" ]] || return 0
   local count; count=$(wc -l <"$LOG_FILE" | tr -d ' ')
-  (( count > MAX_LOG_LINES )) && { tail -n "$MAX_LOG_LINES" "$LOG_FILE" >"${LOG_FILE}.tmp"; mv "${LOG_FILE}.tmp" "$LOG_FILE"; }
+  # Must not end in an && list: a short log would make the function return 1
+  # and abort the errexit caller before anything is applied.
+  if (( count > MAX_LOG_LINES )); then
+    tail -n "$MAX_LOG_LINES" "$LOG_FILE" >"${LOG_FILE}.tmp"; mv "${LOG_FILE}.tmp" "$LOG_FILE"
+  fi
 }
 netforge_acquire_lock() {
   if [[ -f "$LOCK_FILE" ]]; then

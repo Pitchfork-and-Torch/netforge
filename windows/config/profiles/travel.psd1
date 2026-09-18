@@ -9,6 +9,7 @@
     LockSeconds               = 60
     MaxLogLines               = 2000
     DisableSshd               = $true
+    DisableLlmnr          = $true
     DisableFileShare          = $true
     HighPerformancePower      = $false
     RespectVpn                = $true

@@ -9,6 +9,7 @@
     MaxLogLines                 = 2000
     DisableSshd                 = $true
     DisableFileShare            = $true
+    DisableLlmnr                = $true
     HighPerformancePower        = $true
     RespectVpn                  = $true
     CaptivePortalDns            = @('1.1.1.1', '8.8.8.8')

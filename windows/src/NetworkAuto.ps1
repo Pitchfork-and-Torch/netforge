@@ -34,7 +34,7 @@ function Import-NetForgeConfig {
         AppName = 'NetForge'; DnsServers = @('1.1.1.1', '1.0.0.1', '8.8.8.8')
         QosPrefix = 'NetForge-Priority'; EthernetMetric = 5; WiFiMetricAlone = 10; WiFiMetricWithEth = 50
         LockSeconds = 90; MaxLogLines = 2000; DisableSshd = $true; DisableFileShare = $true
-        HighPerformancePower = $true; RespectVpn = $true
+        DisableLlmnr = $true; HighPerformancePower = $true; RespectVpn = $true
     }
 }
 
@@ -124,16 +124,25 @@ try {
         }
     }
 
-    Invoke-NF 'Disable NetBIOS; LLMNR off; SSDP disabled' {
+    Invoke-NF 'Disable NetBIOS; SSDP disabled' {
         Get-CimInstance Win32_NetworkAdapterConfiguration -Filter 'IPEnabled=True' -ErrorAction SilentlyContinue |
             ForEach-Object {
                 Invoke-CimMethod -InputObject $_ -MethodName SetTcpipNetbios -Arguments @{ TcpipNetbiosOptions = [uint32]2 } -ErrorAction SilentlyContinue | Out-Null
             }
-        $llmnrPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient'
-        if (-not (Test-Path $llmnrPath)) { New-Item -Path $llmnrPath -Force | Out-Null }
-        New-ItemProperty -Path $llmnrPath -Name 'EnableMulticast' -Value 0 -PropertyType DWord -Force | Out-Null
         Stop-Service SSDPSRV -Force -ErrorAction SilentlyContinue
         Set-Service SSDPSRV -StartupType Disabled -ErrorAction SilentlyContinue
+    }
+
+    # Parity with Linux DISABLE_LLMNR. Default true; corporate may set DisableLlmnr=$false.
+    $disableLlmnr = if ($null -ne $cfg.DisableLlmnr) { [bool]$cfg.DisableLlmnr } else { $true }
+    if ($disableLlmnr) {
+        Invoke-NF 'LLMNR off (DisableLlmnr=true)' {
+            $llmnrPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient'
+            if (-not (Test-Path $llmnrPath)) { New-Item -Path $llmnrPath -Force | Out-Null }
+            New-ItemProperty -Path $llmnrPath -Name 'EnableMulticast' -Value 0 -PropertyType DWord -Force | Out-Null
+        }
+    } elseif ($script:DryRun) {
+        Add-Plan 'keep LLMNR (DisableLlmnr=false)'
     }
 
     Invoke-NF 'TCP globals: autotune, ECN, Fast Open, RSS, RSC; timestamps off' {

@@ -29,9 +29,11 @@ foreach ($f in $files) {
 $corp = Import-PowerShellDataFile (Join-Path $configDir 'profiles\corporate.psd1')
 Assert-True (-not [bool]$corp.DisableSshd) 'corporate keeps sshd'
 Assert-True (-not [bool]$corp.DisableFileShare) 'corporate keeps file share'
+Assert-True (-not [bool]$corp.DisableLlmnr) 'corporate keeps LLMNR'
 
 $priv = Import-PowerShellDataFile (Join-Path $configDir 'profiles\privacy-max.psd1')
 Assert-True ([bool]$priv.DisableSshd) 'privacy-max disables sshd'
 Assert-True ([bool]$priv.DisableFileShare) 'privacy-max disables file share'
+Assert-True ([bool]$priv.DisableLlmnr) 'privacy-max disables LLMNR'
 
 Write-Output 'CONFIG PROFILES OK'

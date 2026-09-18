@@ -18,6 +18,12 @@ done
 if [[ "$RESTORE" == true ]]; then
   [[ "${EUID:-$(id -u)}" -eq 0 ]] || { echo "Need sudo --restore" >&2; exit 1; }
   rm -f "$CAPTIVE_DROPIN" "$LEGACY_CAPTIVE_DROPIN"
+  # Cancel a previously scheduled auto-restore (Windows parity).
+  if command -v systemd-run >/dev/null 2>&1; then
+    systemctl stop netforge-captive-restore.service 2>/dev/null || true
+    systemctl reset-failed netforge-captive-restore.service 2>/dev/null || true
+  fi
+  rm -f /run/netforge-captive-restore.sh 2>/dev/null || true
   "$SCRIPT_DIR/network-auto.sh" --trigger captive-restore --config "$CONFIG_FILE"; exit 0
 fi
 [[ "$PROBE_ONLY" == true ]] && { echo "Probe-only"; exit 0; }
@@ -42,5 +48,28 @@ if command -v resolvectl >/dev/null 2>&1; then
   printf '[Resolve]\nDNSOverTLS=no\nDNS=%s\n' "${CAPTIVE_PORTAL_DNS:-1.1.1.1 8.8.8.8}" >"$CAPTIVE_DROPIN"
   rm -f "$LEGACY_CAPTIVE_DROPIN"
   systemctl restart systemd-resolved 2>/dev/null || true
+fi
+# Windows schedules CaptiveAutoRestoreSeconds via schtasks; Linux listed the
+# knob in every profile but never armed a timer, so hotel Wi-Fi stayed on
+# plaintext DNS until a manual --restore.
+secs="${CAPTIVE_AUTO_RESTORE_SECONDS:-900}"
+if [[ "$secs" =~ ^[0-9]+$ && "$secs" -gt 0 ]]; then
+  restore_cmd="$(printf '%q' "$SCRIPT_DIR/clear-captive-portal.sh") --restore --config $(printf '%q' "$CONFIG_FILE")"
+  if command -v systemd-run >/dev/null 2>&1; then
+    systemctl stop netforge-captive-restore.service 2>/dev/null || true
+    systemd-run --unit=netforge-captive-restore --on-active="${secs}s" --timer-property=AccuracySec=1s       /bin/bash -c "$restore_cmd" >/dev/null 2>&1 \
+      && echo "Auto-restore scheduled in ${secs}s (netforge-captive-restore)." \
+      || echo "Auto-restore timer unavailable; run: sudo $0 --restore"
+  else
+    # Fallback when systemd-run is missing (containers / minimal images).
+    cat >/run/netforge-captive-restore.sh <<EOS
+#!/bin/bash
+sleep ${secs}
+${restore_cmd}
+EOS
+    chmod 700 /run/netforge-captive-restore.sh
+    nohup /run/netforge-captive-restore.sh >/dev/null 2>&1 &
+    echo "Auto-restore scheduled in ${secs}s (background sleep)."
+  fi
 fi
 echo "After portal login: sudo $0 --restore"

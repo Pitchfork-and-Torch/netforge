@@ -90,6 +90,8 @@ grep -q 'zz-netforge-captive.conf' "$ROOT/src/clear-captive-portal.sh" && ok "ca
 [[ "netforge-captive.conf" < "netforge.conf" ]] && ok "legacy captive name loses to netforge.conf" || bad "legacy captive name loses to netforge.conf"
 [[ "netforge.conf" < "zz-netforge-captive.conf" ]] && ok "zz-captive name wins over netforge.conf" || bad "zz-captive name wins over netforge.conf"
 grep -q 'zz-netforge-captive.conf' "$ROOT/src/uninstall-network-auto.sh" && ok "uninstall removes zz captive drop-in" || bad "uninstall removes zz captive drop-in"
+grep -q 'CAPTIVE_AUTO_RESTORE_SECONDS' "$ROOT/src/clear-captive-portal.sh" && ok "captive honors CAPTIVE_AUTO_RESTORE_SECONDS" || bad "captive honors CAPTIVE_AUTO_RESTORE_SECONDS"
+grep -q 'Auto-restore scheduled' "$ROOT/src/clear-captive-portal.sh" && ok "captive schedules auto-restore" || bad "captive schedules auto-restore"
 
 # --- no personal data in repo ---
 if grep -rEi 'knock|jonbailey|gmail|192\.168\.|password\s*=|api[_-]?key' \

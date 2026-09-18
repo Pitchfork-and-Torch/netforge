@@ -46,14 +46,25 @@ EOF
   netforge_log "sysctl applied (cc=${cc})"
 }
 apply_resolved() {
+  # systemd-resolved accepts yes|no|opportunistic only. SECURITY.md tells
+  # operators to set DNS_OVER_TLS=false for captive portals; writing that
+  # literal left DoT unchanged / invalid. Map bool-ish values to yes/no.
+  local dot
+  case "${DNS_OVER_TLS:-yes}" in
+    true|TRUE|yes|YES|1) dot="yes" ;;
+    false|FALSE|no|NO|0) dot="no" ;;
+    opportunistic|OPPORTUNISTIC) dot="opportunistic" ;;
+    *) dot="${DNS_OVER_TLS:-yes}" ;;
+  esac
+  # Dry-run plans even without resolvectl so operators see the mapped value.
+  if [[ "$DRY_RUN" == true ]]; then plan "resolved DNS=${DNS_SERVERS} DNSOverTLS=${dot}"; return 0; fi
   command -v resolvectl >/dev/null 2>&1 || return 0
-  if [[ "$DRY_RUN" == true ]]; then plan "resolved DNS=${DNS_SERVERS} DNSOverTLS=${DNS_OVER_TLS}"; return 0; fi
   mkdir -p /etc/systemd/resolved.conf.d
   cat >/etc/systemd/resolved.conf.d/netforge.conf <<EOF
 [Resolve]
 DNS=${DNS_SERVERS}
 FallbackDNS=1.0.0.1 8.8.4.4
-DNSOverTLS=${DNS_OVER_TLS}
+DNSOverTLS=${dot}
 DNSSEC=no
 LLMNR=$([[ "${DISABLE_LLMNR:-true}" == true ]] && echo no || echo yes)
 MulticastDNS=$([[ "${DISABLE_MDNS:-false}" == true ]] && echo no || echo yes)

@@ -91,6 +91,38 @@ grep -q 'zz-netforge-captive.conf' "$ROOT/src/clear-captive-portal.sh" && ok "ca
 [[ "netforge.conf" < "zz-netforge-captive.conf" ]] && ok "zz-captive name wins over netforge.conf" || bad "zz-captive name wins over netforge.conf"
 grep -q 'zz-netforge-captive.conf' "$ROOT/src/uninstall-network-auto.sh" && ok "uninstall removes zz captive drop-in" || bad "uninstall removes zz captive drop-in"
 grep -q 'CAPTIVE_AUTO_RESTORE_SECONDS' "$ROOT/src/clear-captive-portal.sh" && ok "captive honors CAPTIVE_AUTO_RESTORE_SECONDS" || bad "captive honors CAPTIVE_AUTO_RESTORE_SECONDS"
+
+# --- DNS_OVER_TLS true/false must become yes/no for resolved ---
+grep -q 'case "${DNS_OVER_TLS' "$ROOT/src/network-auto.sh" \
+  && ok "apply_resolved normalizes DNS_OVER_TLS" \
+  || bad "apply_resolved normalizes DNS_OVER_TLS"
+false_cfg=$(mktemp)
+cat >"$false_cfg" <<'CFG'
+DNS_SERVERS="1.1.1.1"
+DNS_OVER_TLS=false
+DISABLE_SSHD=false
+DISABLE_FILE_SHARE=false
+HIGH_PERFORMANCE_POWER=false
+CFG
+false_dry="$(bash "$ROOT/src/network-auto.sh" --dry-run --config "$false_cfg" 2>/dev/null || true)"
+rm -f "$false_cfg"
+echo "$false_dry" | grep -q 'DNSOverTLS=no' \
+  && ok "dry-run maps DNS_OVER_TLS=false to no" \
+  || bad "dry-run maps DNS_OVER_TLS=false to no"
+true_cfg=$(mktemp)
+cat >"$true_cfg" <<'CFG'
+DNS_SERVERS="1.1.1.1"
+DNS_OVER_TLS=true
+DISABLE_SSHD=false
+DISABLE_FILE_SHARE=false
+HIGH_PERFORMANCE_POWER=false
+CFG
+true_dry="$(bash "$ROOT/src/network-auto.sh" --dry-run --config "$true_cfg" 2>/dev/null || true)"
+rm -f "$true_cfg"
+echo "$true_dry" | grep -q 'DNSOverTLS=yes' \
+  && ok "dry-run maps DNS_OVER_TLS=true to yes" \
+  || bad "dry-run maps DNS_OVER_TLS=true to yes"
+
 grep -q 'Auto-restore scheduled' "$ROOT/src/clear-captive-portal.sh" && ok "captive schedules auto-restore" || bad "captive schedules auto-restore"
 
 # --- no personal data in repo ---

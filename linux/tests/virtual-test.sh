@@ -85,6 +85,11 @@ grep -q 'LOG_FILE' "$ROOT/src/install-network-auto.sh" && ok "install logs to LO
 grep -q '/var/lib/netforge' "$ROOT/src/lib/common.sh" && ok "system data dir /var/lib/netforge" || bad "system data dir /var/lib/netforge"
 grep -q 'CAPTIVE_PORTAL_DNS' "$ROOT/src/clear-captive-portal.sh" && ok "captive uses CAPTIVE_PORTAL_DNS" || bad "captive uses CAPTIVE_PORTAL_DNS"
 grep -q 'DNSOverTLS=no' "$ROOT/src/clear-captive-portal.sh" && ok "captive disables DoT" || bad "captive disables DoT"
+# Drop-in must sort after netforge.conf or apply's DNSOverTLS=yes wins and hotel Wi-Fi stays broken.
+grep -q 'zz-netforge-captive.conf' "$ROOT/src/clear-captive-portal.sh" && ok "captive drop-in sorts after netforge.conf" || bad "captive drop-in sorts after netforge.conf"
+[[ "netforge-captive.conf" < "netforge.conf" ]] && ok "legacy captive name loses to netforge.conf" || bad "legacy captive name loses to netforge.conf"
+[[ "netforge.conf" < "zz-netforge-captive.conf" ]] && ok "zz-captive name wins over netforge.conf" || bad "zz-captive name wins over netforge.conf"
+grep -q 'zz-netforge-captive.conf' "$ROOT/src/uninstall-network-auto.sh" && ok "uninstall removes zz captive drop-in" || bad "uninstall removes zz captive drop-in"
 
 # --- no personal data in repo ---
 if grep -rEi 'knock|jonbailey|gmail|192\.168\.|password\s*=|api[_-]?key' \

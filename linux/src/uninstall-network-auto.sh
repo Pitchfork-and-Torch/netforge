@@ -31,7 +31,7 @@ echo "${APP_NAME} systemd service and NM dispatcher removed."
 
 if [[ "$REVERT" == true ]]; then
   rm -f /etc/sysctl.d/99-netforge.conf
-  rm -f /etc/systemd/resolved.conf.d/netforge.conf /etc/systemd/resolved.conf.d/netforge-captive.conf
+  rm -f /etc/systemd/resolved.conf.d/netforge.conf /etc/systemd/resolved.conf.d/netforge-captive.conf /etc/systemd/resolved.conf.d/zz-netforge-captive.conf
   sysctl --system >/dev/null 2>&1 || true
   systemctl restart systemd-resolved 2>/dev/null || true
   if command -v nmcli >/dev/null 2>&1; then

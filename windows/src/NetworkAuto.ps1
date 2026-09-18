@@ -124,13 +124,20 @@ try {
         }
     }
 
-    Invoke-NF 'Disable NetBIOS; SSDP disabled' {
-        Get-CimInstance Win32_NetworkAdapterConfiguration -Filter 'IPEnabled=True' -ErrorAction SilentlyContinue |
-            ForEach-Object {
-                Invoke-CimMethod -InputObject $_ -MethodName SetTcpipNetbios -Arguments @{ TcpipNetbiosOptions = [uint32]2 } -ErrorAction SilentlyContinue | Out-Null
-            }
-        Stop-Service SSDPSRV -Force -ErrorAction SilentlyContinue
-        Set-Service SSDPSRV -StartupType Disabled -ErrorAction SilentlyContinue
+    # NetBIOS off + SSDP stop breaks Network Discovery even when
+    # DisableFileShare=$false (corporate). Gate with the same flag as
+    # File/Printer Sharing / LanmanServer above.
+    if ($cfg.DisableFileShare) {
+        Invoke-NF 'Disable NetBIOS; SSDP disabled (DisableFileShare=true)' {
+            Get-CimInstance Win32_NetworkAdapterConfiguration -Filter 'IPEnabled=True' -ErrorAction SilentlyContinue |
+                ForEach-Object {
+                    Invoke-CimMethod -InputObject $_ -MethodName SetTcpipNetbios -Arguments @{ TcpipNetbiosOptions = [uint32]2 } -ErrorAction SilentlyContinue | Out-Null
+                }
+            Stop-Service SSDPSRV -Force -ErrorAction SilentlyContinue
+            Set-Service SSDPSRV -StartupType Disabled -ErrorAction SilentlyContinue
+        }
+    } elseif ($script:DryRun) {
+        Add-Plan 'keep NetBIOS/SSDP (DisableFileShare=false)'
     }
 
     # Parity with Linux DISABLE_LLMNR. Default true; corporate may set DisableLlmnr=$false.

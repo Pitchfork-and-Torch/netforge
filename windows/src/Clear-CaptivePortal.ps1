@@ -112,7 +112,9 @@ $saved | ConvertTo-Json -Depth 5 | Set-Content -Path $stateFile -Encoding UTF8
 Write-CPLog "relaxed DNS/DoH; state=$stateFile"
 Clear-DnsClientCache -ErrorAction SilentlyContinue
 
-$secs = if ($cfg.CaptiveAutoRestoreSeconds) { [int]$cfg.CaptiveAutoRestoreSeconds } else { 900 }
+# 0 must disable auto-restore (parity with Linux CAPTIVE_AUTO_RESTORE_SECONDS=0).
+# Truthy check treated 0 as missing and always scheduled a 900s restore.
+$secs = if ($null -ne $cfg.CaptiveAutoRestoreSeconds) { [int]$cfg.CaptiveAutoRestoreSeconds } else { 900 }
 if (-not $NoAutoRestore -and $secs -gt 0) {
     $task = "$($cfg.AppName)-CaptiveRestore"
     $tr = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -Restore -ConfigPath `"$ConfigFile`""

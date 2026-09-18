@@ -1,0 +1,31 @@
+# Changelog
+
+## 2.1.2 - 2026-10-01
+
+- SAMPLE receipt beat: captive recovery skips VPN adapters, uses captive DNS, then restores. It does not say fail closed. The sample still changes nothing.
+
+## 2.1.1 - 2026-09-18
+
+- Captive-portal recovery skips VPN adapters when `RespectVpn` is true
+- Captive recovery uses `CaptivePortalDns` (plaintext) after DHCP reset fails; DoH servers get UDP fallback
+- Apply, status, and captive recovery share one adapter classifier (NordLynx, Fortinet, ZeroTier, Outline)
+
+## 2.0.0 - 2026-07-24
+
+### User-facing
+- Captive portal excellence: probes, temporary DHCP/plaintext DNS, DoH UDP fallback, `-Restore`, optional auto-restore task
+- Richer status: last-run stamp, DNS latency, VPN listing, health, `-Json`, offline `-HtmlPath`
+- VPN respect (`RespectVpn`, default true)
+- Dry-run: `NetworkAuto.ps1 -DryRun`
+- Uninstall `-RevertSettings` best-effort restore
+- Config profiles: home, travel, corporate, privacy-max
+- Packaging: winget example under `packaging/winget/`
+- Landing: https://github.com/Pitchfork-and-Torch/netforge
+
+### Migration
+1. Pull v2.0.0
+2. Merge local `defaults.psd1` with new keys
+3. Re-run `Install-NetworkAuto.ps1`
+
+## 1.0.2
+Prior stable Windows release.

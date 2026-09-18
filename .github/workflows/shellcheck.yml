@@ -1,0 +1,45 @@
+name: ShellCheck
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+  workflow_dispatch:
+jobs:
+  shellcheck-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Analyze Linux scripts
+        working-directory: linux
+        run: |
+          shellcheck -S error -x \
+            src/lib/common.sh \
+            src/network-auto.sh \
+            src/install-network-auto.sh \
+            src/uninstall-network-auto.sh \
+            src/netforge-status.sh \
+            install.sh
+          echo "ShellCheck linux: passed"
+
+  shellcheck-macos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Analyze macOS scripts
+        working-directory: macos
+        run: |
+          shellcheck -S error -x \
+            src/lib/common.sh \
+            src/network-auto.sh \
+            src/install-network-auto.sh \
+            src/uninstall-network-auto.sh \
+            src/netforge-status.sh \
+            install.sh
+          echo "ShellCheck macos: passed"

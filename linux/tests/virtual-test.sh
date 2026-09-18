@@ -93,6 +93,19 @@ grep -q '>>"$LOG_FILE"' "$ROOT/src/install-network-auto.sh" \
   && ok "install receipt appends to LOG_FILE" \
   || bad "install receipt appends to LOG_FILE"
 
+# --- DISABLE_MDNS must stop Avahi, not only flip resolved MulticastDNS ---
+# Regression: privacy-max set DISABLE_MDNS=true but apply only wrote MulticastDNS=no;
+# avahi-daemon kept answering mDNS and undid the privacy intent.
+if grep -A30 '^apply_services()' "$ROOT/src/network-auto.sh" | grep -q 'avahi-daemon'; then
+  ok "apply_services honors DISABLE_MDNS via avahi"
+else
+  bad "apply_services honors DISABLE_MDNS via avahi"
+fi
+dry_out="$(bash "$ROOT/src/network-auto.sh" --dry-run --config "$ROOT/config/profiles/privacy-max.conf" 2>/dev/null || true)"
+echo "$dry_out" | grep -qi 'avahi' \
+  && ok "privacy-max dry-run plans avahi disable" \
+  || bad "privacy-max dry-run plans avahi disable"
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [[ "$FAIL" -eq 0 ]]

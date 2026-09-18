@@ -115,6 +115,14 @@ apply_services() {
   if [[ "${DISABLE_FILE_SHARE:-true}" == true ]]; then
     if [[ "$DRY_RUN" == true ]]; then plan "disable smbd/nmbd/nfs"; else for s in smbd nmbd nfs-server; do systemctl disable --now "$s" 2>/dev/null || true; done; fi
   fi
+  # MulticastDNS=no in resolved alone is not enough: Avahi still answers mDNS.
+  # privacy-max sets DISABLE_MDNS=true; home keeps it false so printers still work.
+  if [[ "${DISABLE_MDNS:-false}" == true ]]; then
+    if [[ "$DRY_RUN" == true ]]; then plan "disable avahi-daemon (DISABLE_MDNS=true)"; else
+      for s in avahi-daemon avahi-dnsconfd; do systemctl disable --now "$s" 2>/dev/null || true; done
+      netforge_log "avahi disabled (DISABLE_MDNS=true)"
+    fi
+  fi
 }
 apply_sysctl; apply_resolved; apply_nm; apply_services
 if [[ "$DRY_RUN" == true ]]; then echo "Dry-run complete. No settings changed."; exit 0; fi

@@ -10,9 +10,9 @@ NetForge modifies **local** Linux network settings. No telemetry, no cloud, no r
 
 | Setting | Impact |
 |---------|--------|
-| `DISABLE_FILE_SHARE=true` | Stops Samba/NFS/Avahi services |
+| `DISABLE_FILE_SHARE=true` | Stops Samba/NFS services |
 | `DISABLE_SSHD=true` | Disables SSH server |
-| `DISABLE_MDNS=false` | Leaving Avahi on preserves printer/AirPlay-style discovery |
+| `DISABLE_MDNS=true` | Stops Avahi and sets resolved MulticastDNS=no (default false keeps printer/AirPlay discovery) |
 
 ## Safe install
 

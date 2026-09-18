@@ -2,6 +2,15 @@
 set -euo pipefail
 
 # netforge_pick_data_dir SYSTEM_DIR USER_DIR [EUID]
+
+# True for true/yes/1 (any case). Parity with Linux: DISABLE_AWDL=yes must work.
+netforge_flag_true() {
+  case "${1:-}" in
+    true|TRUE|yes|YES|1) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 netforge_pick_data_dir() {
   local system_dir="$1"
   local user_dir="$2"
@@ -34,7 +43,7 @@ service_type() {
 # DISABLE_AWDL=true and a wired Ethernet service must both be set before AWDL is taken down.
 netforge_should_disable_awdl() {
   local has_eth="${1:-false}"
-  [[ "${DISABLE_AWDL:-false}" == true && "$has_eth" == true ]]
+  netforge_flag_true "${DISABLE_AWDL:-false}" && [[ "$has_eth" == true ]]
 }
 
 netforge_load_config() {

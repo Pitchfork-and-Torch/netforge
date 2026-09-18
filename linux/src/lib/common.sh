@@ -3,6 +3,17 @@ set -euo pipefail
 
 # Pick system data dir when root, or when a previous root apply left readable state.
 # netforge_pick_data_dir SYSTEM_DIR USER_DIR [EUID]
+
+# True for true/yes/1 (any case). DISABLE_* and similar flags used to require
+# the literal "true", so DISABLE_MDNS=yes / DISABLE_LLMNR=1 silently did nothing
+# even though DNS_OVER_TLS already accepted those spellings.
+netforge_flag_true() {
+  case "${1:-}" in
+    true|TRUE|yes|YES|1) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 netforge_pick_data_dir() {
   local system_dir="$1"
   local user_dir="$2"

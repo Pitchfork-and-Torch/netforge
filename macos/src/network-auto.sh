@@ -31,7 +31,7 @@ apply_network_services() {
       case "$stype" in
         ethernet) eth_svcs+=("$svc") ;;
         wifi) wifi_svcs+=("$svc") ;;
-        vpn) if [[ "${RESPECT_VPN:-true}" == true ]]; then [[ "$DRY_RUN" == true ]] && plan "skip VPN [$svc]"; continue; fi; other_svcs+=("$svc") ;;
+        vpn) if netforge_flag_true "${RESPECT_VPN:-true}"; then [[ "$DRY_RUN" == true ]] && plan "skip VPN [$svc]"; continue; fi; other_svcs+=("$svc") ;;
         *) other_svcs+=("$svc") ;;
       esac
     done
@@ -42,7 +42,7 @@ apply_network_services() {
   local dns_args=(); read -r -a dns_args <<<"$DNS_SERVERS"
   for svc in "${services[@]}"; do
     stype=$(service_type "$svc")
-    if [[ "$stype" == vpn && "${RESPECT_VPN:-true}" == true ]]; then
+    if [[ "$stype" == vpn ]] && netforge_flag_true "${RESPECT_VPN:-true}"; then
       [[ "$DRY_RUN" == true ]] && plan "skip DNS on VPN [$svc]"; continue
     fi
     if [[ "$DRY_RUN" == true ]]; then plan "DNS on [$svc] -> $DNS_SERVERS"
@@ -75,7 +75,7 @@ apply_awdl() {
   netforge_log "AWDL down (wired present, DISABLE_AWDL=true)"
 }
 apply_sharing() {
-  if [[ "${DISABLE_SSHD:-true}" == true ]]; then
+  if netforge_flag_true "${DISABLE_SSHD:-true}"; then
     if [[ "$DRY_RUN" == true ]]; then plan "disable Remote Login"; else
       launchctl bootout system/com.openssh.sshd 2>/dev/null || true
       launchctl unload -w /System/Library/LaunchDaemons/ssh.plist 2>/dev/null || true
@@ -83,7 +83,7 @@ apply_sharing() {
       netforge_log "Remote Login disabled"
     fi
   fi
-  if [[ "${DISABLE_FILE_SHARE:-true}" == true ]]; then
+  if netforge_flag_true "${DISABLE_FILE_SHARE:-true}"; then
     if [[ "$DRY_RUN" == true ]]; then plan "disable File Sharing"; else
       launchctl unload -w /System/Library/LaunchDaemons/com.apple.smbd.plist 2>/dev/null || true
       [[ "$TRIGGER" != "daemon" ]] && systemsetup -setfilesharing off 2>/dev/null || true
@@ -94,7 +94,7 @@ apply_sharing() {
 apply_power() {
   # Parity with Windows HighPerformancePower. Flag ships in every macOS profile
   # but apply never touched pmset; corporate/travel set false on purpose.
-  if [[ "${HIGH_PERFORMANCE_POWER:-true}" != true ]]; then
+  if ! netforge_flag_true "${HIGH_PERFORMANCE_POWER:-true}"; then
     [[ "$DRY_RUN" == true ]] && plan "keep power profile (HIGH_PERFORMANCE_POWER=false)"
     return 0
   fi

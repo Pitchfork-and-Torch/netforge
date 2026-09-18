@@ -56,8 +56,14 @@ apply_resolved() {
     opportunistic|OPPORTUNISTIC) dot="opportunistic" ;;
     *) dot="${DNS_OVER_TLS:-yes}" ;;
   esac
-  # Dry-run plans even without resolvectl so operators see the mapped value.
-  if [[ "$DRY_RUN" == true ]]; then plan "resolved DNS=${DNS_SERVERS} DNSOverTLS=${dot}"; return 0; fi
+  local llmnr mdns
+  if netforge_flag_true "${DISABLE_LLMNR:-true}"; then llmnr="no"; else llmnr="yes"; fi
+  if netforge_flag_true "${DISABLE_MDNS:-false}"; then mdns="no"; else mdns="yes"; fi
+  # Dry-run plans even without resolvectl so operators see the mapped values.
+  if [[ "$DRY_RUN" == true ]]; then
+    plan "resolved DNS=${DNS_SERVERS} DNSOverTLS=${dot} LLMNR=${llmnr} MulticastDNS=${mdns}"
+    return 0
+  fi
   command -v resolvectl >/dev/null 2>&1 || return 0
   mkdir -p /etc/systemd/resolved.conf.d
   cat >/etc/systemd/resolved.conf.d/netforge.conf <<EOF
@@ -66,8 +72,8 @@ DNS=${DNS_SERVERS}
 FallbackDNS=1.0.0.1 8.8.4.4
 DNSOverTLS=${dot}
 DNSSEC=no
-LLMNR=$([[ "${DISABLE_LLMNR:-true}" == true ]] && echo no || echo yes)
-MulticastDNS=$([[ "${DISABLE_MDNS:-false}" == true ]] && echo no || echo yes)
+LLMNR=${llmnr}
+MulticastDNS=${mdns}
 EOF
   systemctl restart systemd-resolved 2>/dev/null || true
   netforge_log "systemd-resolved configured"
@@ -88,7 +94,7 @@ apply_nm() {
   for conn in "${connections[@]}"; do
     [[ -n "$conn" ]] || continue
     ctype=$(nm_type "$conn")
-    if [[ "$ctype" == vpn && "${RESPECT_VPN:-true}" == true ]]; then
+    if [[ "$ctype" == vpn ]] && netforge_flag_true "${RESPECT_VPN:-true}"; then
       if [[ "$DRY_RUN" == true ]]; then plan "skip VPN [$conn]"; else netforge_log "RespectVpn: skip [$conn]"; fi
       continue
     fi
@@ -112,17 +118,17 @@ apply_nm() {
   fi
 }
 apply_services() {
-  if [[ "${DISABLE_SSHD:-true}" == true ]]; then
+  if netforge_flag_true "${DISABLE_SSHD:-true}"; then
     if [[ "$DRY_RUN" == true ]]; then plan "disable ssh/sshd"; else for s in ssh sshd; do systemctl disable --now "$s" 2>/dev/null || true; done; fi
   fi
-  if [[ "${DISABLE_FILE_SHARE:-true}" == true ]]; then
+  if netforge_flag_true "${DISABLE_FILE_SHARE:-true}"; then
     if [[ "$DRY_RUN" == true ]]; then plan "disable smbd/nmbd/nfs"; else for s in smbd nmbd nfs-server; do systemctl disable --now "$s" 2>/dev/null || true; done; fi
   fi
 }
 apply_power() {
   # Windows NetworkAuto honors HighPerformancePower; Linux listed the flag in
   # every profile but never applied it. corporate/travel set false on purpose.
-  if [[ "${HIGH_PERFORMANCE_POWER:-true}" != true ]]; then
+  if ! netforge_flag_true "${HIGH_PERFORMANCE_POWER:-true}"; then
     [[ "$DRY_RUN" == true ]] && plan "keep power profile (HIGH_PERFORMANCE_POWER=false)"
     return 0
   fi

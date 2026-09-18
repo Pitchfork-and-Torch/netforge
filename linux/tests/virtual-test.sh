@@ -155,5 +155,37 @@ echo "$corp_dry" | grep -qi 'HIGH_PERFORMANCE_POWER=false' \
   || bad "corporate dry-run keeps power profile"
 
 echo ""
+
+# --- DISABLE_* must accept yes/1 like DNS_OVER_TLS (not only literal true) ---
+grep -q 'netforge_flag_true' "$ROOT/src/lib/common.sh"   && ok "common.sh defines netforge_flag_true"   || bad "common.sh defines netforge_flag_true"
+yes_cfg=$(mktemp)
+cat >"$yes_cfg" <<'CFG'
+DNS_SERVERS="1.1.1.1"
+DNS_OVER_TLS=yes
+DISABLE_SSHD=false
+DISABLE_FILE_SHARE=false
+DISABLE_LLMNR=yes
+DISABLE_MDNS=1
+HIGH_PERFORMANCE_POWER=false
+CFG
+yes_dry="$(bash "$ROOT/src/network-auto.sh" --dry-run --config "$yes_cfg" 2>/dev/null || true)"
+rm -f "$yes_cfg"
+echo "$yes_dry" | grep -q 'LLMNR=no'   && ok "dry-run maps DISABLE_LLMNR=yes to LLMNR=no"   || bad "dry-run maps DISABLE_LLMNR=yes to LLMNR=no"
+echo "$yes_dry" | grep -q 'MulticastDNS=no'   && ok "dry-run maps DISABLE_MDNS=1 to MulticastDNS=no"   || bad "dry-run maps DISABLE_MDNS=1 to MulticastDNS=no"
+false_mdns_cfg=$(mktemp)
+cat >"$false_mdns_cfg" <<'CFG'
+DNS_SERVERS="1.1.1.1"
+DNS_OVER_TLS=yes
+DISABLE_SSHD=false
+DISABLE_FILE_SHARE=false
+DISABLE_LLMNR=false
+DISABLE_MDNS=false
+HIGH_PERFORMANCE_POWER=false
+CFG
+false_mdns_dry="$(bash "$ROOT/src/network-auto.sh" --dry-run --config "$false_mdns_cfg" 2>/dev/null || true)"
+rm -f "$false_mdns_cfg"
+echo "$false_mdns_dry" | grep -q 'LLMNR=yes'   && ok "dry-run maps DISABLE_LLMNR=false to LLMNR=yes"   || bad "dry-run maps DISABLE_LLMNR=false to LLMNR=yes"
+echo "$false_mdns_dry" | grep -q 'MulticastDNS=yes'   && ok "dry-run maps DISABLE_MDNS=false to MulticastDNS=yes"   || bad "dry-run maps DISABLE_MDNS=false to MulticastDNS=yes"
+
 echo "Results: $PASS passed, $FAIL failed"
 [[ "$FAIL" -eq 0 ]]

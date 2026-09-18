@@ -166,10 +166,33 @@ try {
         }
     }
 
-    Invoke-NF 'DoH templates for 1.1.1.1 / 1.0.0.1 / 8.8.8.8' {
-        Set-DnsClientDohServerAddress -ServerAddress '1.1.1.1' -DohTemplate 'https://cloudflare-dns.com/dns-query' -AllowFallbackToUdp $false -AutoUpgrade $true -ErrorAction SilentlyContinue
-        Set-DnsClientDohServerAddress -ServerAddress '1.0.0.1' -DohTemplate 'https://cloudflare-dns.com/dns-query' -AllowFallbackToUdp $false -AutoUpgrade $true -ErrorAction SilentlyContinue
-        Set-DnsClientDohServerAddress -ServerAddress '8.8.8.8' -DohTemplate 'https://dns.google/dns-query' -AllowFallbackToUdp $false -AutoUpgrade $true -ErrorAction SilentlyContinue
+    # Register DoH for whatever DnsServers the profile selected. Hardcoding only
+    # Cloudflare/Google left Quad9 (and other) profiles on plaintext UDP/TCP.
+    $dohMap = @{
+        '1.1.1.1'         = 'https://cloudflare-dns.com/dns-query'
+        '1.0.0.1'         = 'https://cloudflare-dns.com/dns-query'
+        '8.8.8.8'         = 'https://dns.google/dns-query'
+        '8.8.4.4'         = 'https://dns.google/dns-query'
+        '9.9.9.9'         = 'https://dns.quad9.net/dns-query'
+        '149.112.112.112' = 'https://dns.quad9.net/dns-query'
+    }
+    $dnsList = @($cfg.DnsServers)
+    if (-not $dnsList -or $dnsList.Count -eq 0) {
+        $dnsList = @('1.1.1.1', '1.0.0.1', '8.8.8.8')
+    }
+    $dohTargets = @(
+        $dnsList | ForEach-Object { "$_".Trim() } |
+            Where-Object { $_ -and $dohMap.ContainsKey($_) }
+    )
+    $dohLabel = if ($dohTargets.Count -gt 0) {
+        "DoH templates for $($dohTargets -join ' / ') (from DnsServers)"
+    } else {
+        "DoH templates skipped (no known template for DnsServers)"
+    }
+    Invoke-NF $dohLabel {
+        foreach ($srv in $dohTargets) {
+            Set-DnsClientDohServerAddress -ServerAddress $srv -DohTemplate $dohMap[$srv] -AllowFallbackToUdp $false -AutoUpgrade $true -ErrorAction SilentlyContinue
+        }
     }
 
     Invoke-NF 'Firewall: Private log blocked; Public block inbound' {

@@ -94,7 +94,9 @@ Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object Status -eq
     $dns = @(Get-DnsClientServerAddress -InterfaceAlias $if -AddressFamily IPv4 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty ServerAddresses)
     $saved.adapters += @{ name = $if; dns = $dns }
     Write-Host "  adapter: $if"
-    foreach ($srv in @('1.1.1.1', '1.0.0.1', '8.8.8.8')) {
+    $relaxDoh = @('1.1.1.1', '1.0.0.1', '8.8.8.8', '8.8.4.4', '9.9.9.9', '149.112.112.112')
+    if ($cfg.DnsServers) { $relaxDoh = @($relaxDoh + @($cfg.DnsServers) | Select-Object -Unique) }
+    foreach ($srv in $relaxDoh) {
         try { Set-DnsClientDohServerAddress -ServerAddress $srv -AllowFallbackToUdp $true -ErrorAction SilentlyContinue } catch {}
     }
     try {

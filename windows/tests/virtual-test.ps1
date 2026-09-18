@@ -5,6 +5,7 @@ Write-Output 'NetForge Windows virtual tests'
 & (Join-Path $here 'adapters.ps1')
 & (Join-Path $here 'config-profiles.ps1')
 & (Join-Path $here 'sample-receipt.ps1')
+& (Join-Path $here 'doh-dns-servers.ps1')
 
 $apply = Join-Path (Split-Path -Parent $here) 'src\NetworkAuto.ps1'
 $prevEap = $ErrorActionPreference

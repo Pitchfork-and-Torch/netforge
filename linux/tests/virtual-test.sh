@@ -99,6 +99,22 @@ fi
 grep -q 'Pitchfork-and-Torch/netforge' "$ROOT/install.sh" && ok "install.sh repo URL" || bad "install.sh repo URL"
 grep -q 'netforge-network-auto' "$ROOT/src/install-network-auto.sh" && ok "systemd unit name" || bad "systemd unit"
 
+# --- HIGH_PERFORMANCE_POWER must be applied (was config-only) ---
+if grep -q '^apply_power()' "$ROOT/src/network-auto.sh" \
+  && grep -q 'HIGH_PERFORMANCE_POWER' "$ROOT/src/network-auto.sh"; then
+  ok "apply_power honors HIGH_PERFORMANCE_POWER"
+else
+  bad "apply_power honors HIGH_PERFORMANCE_POWER"
+fi
+home_dry="$(bash "$ROOT/src/network-auto.sh" --dry-run --config "$ROOT/config/profiles/home.conf" 2>/dev/null || true)"
+echo "$home_dry" | grep -qi 'performance power' \
+  && ok "home dry-run plans performance power" \
+  || bad "home dry-run plans performance power"
+corp_dry="$(bash "$ROOT/src/network-auto.sh" --dry-run --config "$ROOT/config/profiles/corporate.conf" 2>/dev/null || true)"
+echo "$corp_dry" | grep -qi 'HIGH_PERFORMANCE_POWER=false' \
+  && ok "corporate dry-run keeps power profile" \
+  || bad "corporate dry-run keeps power profile"
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [[ "$FAIL" -eq 0 ]]

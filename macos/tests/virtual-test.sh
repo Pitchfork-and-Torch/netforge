@@ -86,6 +86,14 @@ grep -q 'order_svcs' "$ROOT/src/network-auto.sh" && ok "bash 3.2 service order f
 grep -q 'apply_awdl' "$ROOT/src/network-auto.sh" && ok "apply_awdl wired" || bad "apply_awdl wired"
 grep -q '\$TRIGGER" != "daemon"' "$ROOT/src/network-auto.sh" && ok "daemon skips systemsetup" || bad "daemon skips systemsetup"
 
+# --- HIGH_PERFORMANCE_POWER must reach pmset (was config-only) ---
+if grep -q '^apply_power()' "$ROOT/src/network-auto.sh" \
+  && grep -q 'HIGH_PERFORMANCE_POWER' "$ROOT/src/network-auto.sh"; then
+  ok "apply_power honors HIGH_PERFORMANCE_POWER"
+else
+  bad "apply_power honors HIGH_PERFORMANCE_POWER"
+fi
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [[ "$FAIL" -eq 0 ]]

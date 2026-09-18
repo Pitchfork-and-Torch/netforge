@@ -108,7 +108,25 @@ apply_services() {
     if [[ "$DRY_RUN" == true ]]; then plan "disable smbd/nmbd/nfs"; else for s in smbd nmbd nfs-server; do systemctl disable --now "$s" 2>/dev/null || true; done; fi
   fi
 }
-apply_sysctl; apply_resolved; apply_nm; apply_services
+apply_power() {
+  # Windows NetworkAuto honors HighPerformancePower; Linux listed the flag in
+  # every profile but never applied it. corporate/travel set false on purpose.
+  if [[ "${HIGH_PERFORMANCE_POWER:-true}" != true ]]; then
+    [[ "$DRY_RUN" == true ]] && plan "keep power profile (HIGH_PERFORMANCE_POWER=false)"
+    return 0
+  fi
+  if [[ "$DRY_RUN" == true ]]; then plan "set performance power profile"; return 0; fi
+  if command -v powerprofilesctl >/dev/null 2>&1; then
+    powerprofilesctl set performance 2>/dev/null || true
+    netforge_log "powerprofilesctl performance (HIGH_PERFORMANCE_POWER=true)"
+  elif command -v tuned-adm >/dev/null 2>&1; then
+    tuned-adm profile throughput-performance 2>/dev/null || true
+    netforge_log "tuned throughput-performance (HIGH_PERFORMANCE_POWER=true)"
+  else
+    netforge_log "HIGH_PERFORMANCE_POWER=true but no powerprofilesctl/tuned-adm"
+  fi
+}
+apply_sysctl; apply_resolved; apply_nm; apply_services; apply_power
 if [[ "$DRY_RUN" == true ]]; then echo "Dry-run complete. No settings changed."; exit 0; fi
 resolvectl flush-caches 2>/dev/null || true
 netforge_write_last_run "$TRIGGER"

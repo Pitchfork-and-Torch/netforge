@@ -91,7 +91,20 @@ apply_sharing() {
     fi
   fi
 }
-apply_network_services; apply_sysctl; apply_awdl; apply_sharing
+apply_power() {
+  # Parity with Windows HighPerformancePower. Flag ships in every macOS profile
+  # but apply never touched pmset; corporate/travel set false on purpose.
+  if [[ "${HIGH_PERFORMANCE_POWER:-true}" != true ]]; then
+    [[ "$DRY_RUN" == true ]] && plan "keep power profile (HIGH_PERFORMANCE_POWER=false)"
+    return 0
+  fi
+  if [[ "$DRY_RUN" == true ]]; then plan "set high-power pmset profile"; return 0; fi
+  # Apple silicon: powermode 2 = High Power. Intel ignores unknown keys quietly.
+  pmset -a powermode 2 2>/dev/null || true
+  pmset -c sleep 0 disksleep 10 2>/dev/null || true
+  netforge_log "pmset high-power (HIGH_PERFORMANCE_POWER=true)"
+}
+apply_network_services; apply_sysctl; apply_awdl; apply_sharing; apply_power
 if [[ "$DRY_RUN" == true ]]; then echo "Dry-run complete. No settings changed."; exit 0; fi
 dscacheutil -flushcache 2>/dev/null || true
 killall -HUP mDNSResponder 2>/dev/null || true

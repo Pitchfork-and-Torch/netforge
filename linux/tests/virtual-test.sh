@@ -79,6 +79,20 @@ fi
 grep -q 'Pitchfork-and-Torch/netforge' "$ROOT/install.sh" && ok "install.sh repo URL" || bad "install.sh repo URL"
 grep -q 'netforge-network-auto' "$ROOT/src/install-network-auto.sh" && ok "systemd unit name" || bad "systemd unit"
 
+
+# --- install receipt must share apply/status log path ---
+# Regression: install used to overwrite DATA_DIR with /root/.local/share/NetForge
+# after load_config, so the install receipt and "Log file:" hint diverged from
+# root apply/status which write /var/lib/netforge/network-auto.log.
+if grep -q '/root/.local/share' "$ROOT/src/install-network-auto.sh"; then
+  bad "install log path hardcodes /root/.local/share"
+else
+  ok "install log path not hardcoded to /root/.local/share"
+fi
+grep -q '>>"$LOG_FILE"' "$ROOT/src/install-network-auto.sh" \
+  && ok "install receipt appends to LOG_FILE" \
+  || bad "install receipt appends to LOG_FILE"
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [[ "$FAIL" -eq 0 ]]

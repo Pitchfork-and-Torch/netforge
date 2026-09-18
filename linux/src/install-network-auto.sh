@@ -58,16 +58,17 @@ systemctl daemon-reload
 systemctl enable netforge-network-auto.service
 systemctl start netforge-network-auto.service || true
 
-DATA_DIR="/root/.local/share/${APP_NAME}"
+# Use DATA_DIR/LOG_FILE from netforge_load_config (root -> /var/lib/netforge),
+# not $HOME/.local/share — otherwise the install receipt and status/apply logs diverge.
 mkdir -p "$DATA_DIR"
-printf '[%s] Installed systemd service + NM dispatcher -> %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$INSTALL_DIR" >>"$DATA_DIR/network-auto.log"
+printf '[%s] Installed systemd service + NM dispatcher -> %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$INSTALL_DIR" >>"$LOG_FILE"
 
 echo ""
 echo "${APP_NAME} installed successfully."
 echo "  Install dir:  $INSTALL_DIR"
 echo "  Boot service: netforge-network-auto.service"
 echo "  NM hook:      /etc/NetworkManager/dispatcher.d/99-netforge"
-echo "  Log file:     ${DATA_DIR}/network-auto.log"
+echo "  Log file:     $LOG_FILE"
 echo ""
 echo "Run manually:  sudo ${INSTALL_DIR}/src/network-auto.sh --trigger manual"
 echo ""

@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+# Virtual tests - no root, no network changes. Run: bash tests/virtual-test.sh
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PASS=0
+FAIL=0
+
+ok() { echo "  OK: $1"; PASS=$((PASS + 1)); }
+bad() { echo "  FAIL: $1"; FAIL=$((FAIL + 1)); }
+
+echo "NetForge Linux virtual tests"
+echo "Root: $ROOT"
+
+# --- syntax ---
+for f in install.sh src/network-auto.sh src/install-network-auto.sh src/uninstall-network-auto.sh src/lib/common.sh; do
+  if bash -n "$ROOT/$f" 2>/dev/null; then ok "syntax $f"; else bad "syntax $f"; fi
+done
+
+# --- required files ---
+for f in config/defaults.conf config/defaults.example.conf README.md SECURITY.md LICENSE VERSION; do
+  [[ -f "$ROOT/$f" ]] && ok "exists $f" || bad "missing $f"
+done
+
+# --- config load ---
+# shellcheck source=src/lib/common.sh
+source "$ROOT/src/lib/common.sh"
+netforge_load_config "$ROOT/config/defaults.conf"
+[[ "$APP_NAME" == "NetForge" ]] && ok "APP_NAME" || bad "APP_NAME"
+[[ "$DNS_SERVERS" == *"1.1.1.1"* ]] && ok "DNS_SERVERS" || bad "DNS_SERVERS"
+[[ "$ETHERNET_METRIC" -lt "$WIFI_METRIC_ALONE" ]] && ok "metrics order" || bad "metrics order"
+
+# --- log rotation must not abort an errexit caller (regression) ---
+tmp_log_dir="$(mktemp -d)"
+printf 'a\nb\nc\n' >"$tmp_log_dir/short.log"
+# Separate process: bash ignores set -e inside an if/&&/|| context, so a subshell here would not reproduce the caller.
+rotate_out="$(bash -c 'set -euo pipefail; source "$1"; LOG_FILE="$2"; MAX_LOG_LINES=2000; netforge_rotate_log; echo reached' \
+  _ "$ROOT/src/lib/common.sh" "$tmp_log_dir/short.log" 2>/dev/null || true)"
+[[ "$rotate_out" == "reached" ]] && ok "rotate_log short log returns 0" || bad "rotate_log short log aborts errexit caller"
+seq 1 10 >"$tmp_log_dir/long.log"
+(LOG_FILE="$tmp_log_dir/long.log"; MAX_LOG_LINES=4; netforge_rotate_log)
+[[ "$(wc -l <"$tmp_log_dir/long.log" | tr -d ' ')" == "4" && "$(tail -n 1 "$tmp_log_dir/long.log")" == "10" ]] \
+  && ok "rotate_log trims long log" || bad "rotate_log trims long log"
+rm -rf "$tmp_log_dir"
+
+# --- congestion control helper (inline copy for unit test) ---
+pick_cc() {
+  if [[ -r /proc/sys/net/ipv4/tcp_available_congestion_control ]] \
+    && grep -qw bbr /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null; then
+    echo bbr
+  else
+    echo cubic
+  fi
+}
+cc=$(pick_cc)
+[[ "$cc" == "bbr" || "$cc" == "cubic" ]] && ok "pick_cc=$cc" || bad "pick_cc"
+
+# --- nm_connection_type logic (mocked) ---
+nm_connection_type() {
+  case "$1" in
+    802-3-ethernet|ethernet) echo ethernet ;;
+    802-11-wireless|wifi) echo wifi ;;
+    *) echo other ;;
+  esac
+}
+[[ "$(nm_connection_type 802-11-wireless)" == "wifi" ]] && ok "nm wifi type" || bad "nm wifi type"
+[[ "$(nm_connection_type 802-3-ethernet)" == "ethernet" ]] && ok "nm eth type" || bad "nm eth type"
+
+# --- no personal data in repo ---
+if grep -rEi 'knock|jonbailey|gmail|192\.168\.|password\s*=|api[_-]?key' \
+  --include='*.sh' --include='*.conf' --include='*.md' "$ROOT" \
+  --exclude-dir=tests --exclude-dir=.git 2>/dev/null; then
+  bad "personal/secret pattern found"
+else
+  ok "no personal/secret patterns"
+fi
+
+# --- install paths ---
+grep -q 'Pitchfork-and-Torch/netforge' "$ROOT/install.sh" && ok "install.sh repo URL" || bad "install.sh repo URL"
+grep -q 'netforge-network-auto' "$ROOT/src/install-network-auto.sh" && ok "systemd unit name" || bad "systemd unit"
+
+
+# --- install receipt must share apply/status log path ---
+# Regression: install used to overwrite DATA_DIR with /root/.local/share/NetForge
+# after load_config, so the install receipt and "Log file:" hint diverged from
+# root apply/status which write /var/lib/netforge/network-auto.log.
+if grep -q '/root/.local/share' "$ROOT/src/install-network-auto.sh"; then
+  bad "install log path hardcodes /root/.local/share"
+else
+  ok "install log path not hardcoded to /root/.local/share"
+fi
+grep -q '>>"$LOG_FILE"' "$ROOT/src/install-network-auto.sh" \
+  && ok "install receipt appends to LOG_FILE" \
+  || bad "install receipt appends to LOG_FILE"
+
+echo ""
+echo "Results: $PASS passed, $FAIL failed"
+[[ "$FAIL" -eq 0 ]]

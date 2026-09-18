@@ -59,6 +59,20 @@ function Write-NetForgeLog([string]$Message) {
     Add-Content -Path $log -Value "[$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] $Message" -ErrorAction SilentlyContinue
 }
 
+function Rotate-NetForgeLog {
+    # Honor MaxLogLines (defaults.psd1 / profiles). Linux/macOS rotate via
+    # netforge_rotate_log; Windows previously never trimmed network-auto.log.
+    if ($script:DryRun) { return }
+    if (-not (Test-Path $log)) { return }
+    $max = 2000
+    if ($null -ne $cfg.MaxLogLines -and [int]$cfg.MaxLogLines -gt 0) { $max = [int]$cfg.MaxLogLines }
+    try {
+        $lines = Get-Content -Path $log -ErrorAction Stop
+        if ($lines.Count -le $max) { return }
+        $lines[-$max..-1] | Set-Content -Path $log -Encoding UTF8
+    } catch {}
+}
+
 function Test-IsVpnAdapter($Adapter) {
     "$($Adapter.Name) $($Adapter.InterfaceDescription)" -match 'VPN|TAP|TUN|Wintun|WireGuard|OpenVPN|NordLynx|AnyConnect|GlobalProtect|Zscaler|Fortinet|Tailscale|ZeroTier|WARP|warp|Mullvad|ProtonVPN|Outline'
 }
@@ -92,6 +106,7 @@ if (-not $script:DryRun) {
 }
 
 try {
+    Rotate-NetForgeLog
     Write-NetForgeLog "=== $($cfg.AppName) v2 trigger=$Trigger dryRun=$($script:DryRun) respectVpn=$respectVpn ==="
     if ($script:DryRun) { Write-Host "NetForge dry-run (no changes) - config: $script:ConfigFile" -ForegroundColor Cyan }
 
